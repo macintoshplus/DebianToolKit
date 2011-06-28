@@ -30,7 +30,7 @@ SEUILOCCUPATION=80
 
 function envoyerAlerte
 {
-DEST="admin@sygeste.com"
+DEST="admin@domain.tld"
 SUBJECT="Espace disque faible sur `hostname`"
 
 MSGFILE="/tmp/hddmsg.txt"
