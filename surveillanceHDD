@@ -1,0 +1,75 @@
+#!/bin/bash
+echo ""
+echo "Surveillance des partitions de Disque Dur"
+echo "Ecrit par Jean-Baptiste Nahan"
+echo "contact : jbnahan@gmail.com"
+echo ""
+
+# vérifie que l'argument est renseigné
+if [ -x $1 ]
+then
+echo "Usage : $0 <partition_name>"
+echo "Example : $0 sda1"
+exit 1
+fi
+
+#test l'existance de la partition
+if [ -b /dev/$1 ]
+then
+echo "Partition : "$1
+else
+echo "Partition : "$1" introuvable"
+exit 1
+fi
+
+# nom du HDD:
+NOMHDD=$1
+
+#seuil de déclanchement en % d'occupation
+SEUILOCCUPATION=80
+
+function envoyerAlerte
+{
+DEST="admin@sygeste.com"
+SUBJECT="Espace disque faible sur `hostname`"
+
+MSGFILE="/tmp/hddmsg.txt"
+
+echo "Bonjour,">$MSGFILE
+echo "">>$MSGFILE
+echo "Le serveur `hostname` semble avoir un probleme avec son espace disque !">>$MSGFILE
+echo "La partition $NOMHDD semble occupee a plus de $SEUILOCCUPATION%">>$MSGFILE
+echo "">>$MSGFILE
+echo "Voici le detail : ">>$MSGFILE
+echo "`df`">>$MSGFILE
+echo "">>$MSGFILE
+echo "Merci de vous connecter au serveur pour corriger le probleme.">>$MSGFILE
+echo "En cas de non correction, le serveur peut planter !">>$MSGFILE
+echo "">>$MSGFILE
+echo "Le service de surveillance des disques durs.">>$MSGFILE
+echo "">>$MSGFILE
+#echo "">>$MSGFILE
+#echo "">>$MSGFILE
+#echo "">>$MSGFILE
+
+#envoie le mail
+mail -s "$SUBJECT" "$DEST" < $MSGFILE
+
+#supprime le mail
+rm $MSGFILE
+
+}
+
+OCCUPATION=`df -h | grep $NOMHDD | cut -c40-42`
+if [ -x $OCCUPATION ]
+then
+echo "La partition n'est peut être pas montée."
+exit 1
+fi
+
+if [ "$OCCUPATION" -ge "$SEUILOCCUPATION" ];
+then
+ echo Envoie email
+ envoyerAlerte
+fi
+
